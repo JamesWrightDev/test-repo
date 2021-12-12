@@ -1,18 +1,10 @@
 import { Injectable } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class AppService {
+  constructor() {}
   getHello(): string {
     return 'Hello World!';
-  }
-
-  githubLogin(req) {
-    if (!req.user) {
-      return 'NO github user';
-    } else {
-      return {
-        user: req.user,
-      };
-    }
   }
 }
