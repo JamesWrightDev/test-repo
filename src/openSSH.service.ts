@@ -20,6 +20,8 @@ const generateKeyPairPromise = (): Promise<KeyRes> => {
         privateKeyEncoding: {
           type: 'pkcs8',
           format: 'pem',
+          cipher: 'aes-256-cbc',
+          passphrase: 'secret password',
         },
       },
       (err, publicKey, privateKey) => {

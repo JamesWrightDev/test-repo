@@ -13,7 +13,7 @@ var Git = require('nodegit');
 @Injectable()
 export class ReposService {
   constructor(private openSSH: OpenSSHService, private prisma: PrismaClient) {}
-  octokit = new Octokit({ auth: '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' });
+  octokit = new Octokit({ auth: process.env.GITHUB_ACCESS_CODE });
 
   async create(createRepoDto: CreateRepoDto) {
     return this.octokit.repos.createForAuthenticatedUser({
@@ -46,28 +46,74 @@ export class ReposService {
     ).data;
   }
 
-  async clone(name: string) {}
+  getCharCodes(s: string) {
+    let charCodeArr = [];
+
+    for (let i = 0; i < s.length; i++) {
+      let code = s.charCodeAt(i);
+      charCodeArr.push(code);
+    }
+
+    return charCodeArr;
+  }
+
+  async clone(name: string) {
+    const keys = await this.prisma.repo.findFirst({
+      where: { name: 'test-repo' },
+    });
+    try {
+      const cred = Git.Credential.sshKeyMemoryNew(
+        'git',
+        keys.public_key,
+        keys.private_key,
+        'secret password',
+      );
+
+      const cloneOpts = {
+        fetchOpts: {
+          callbacks: {
+            certificateCheck: function () {
+              return 0;
+            },
+            credentials: (url, username) => {
+              return cred;
+            },
+          },
+        },
+      };
+
+      const repo = await Git.Clone.clone(
+        'git@github.com:JamesWrightDev/test-repo.git',
+        `./tmp`,
+        cloneOpts,
+      );
+      return 'OK';
+    } catch (e) {
+      console.log('error');
+      console.log(e);
+    }
+
+    return 'hello';
+  }
 
   async findOne(name: string) {
-    const repo = await Clone.clone(name, `./tmp`);
-
     const keys = await this.prisma.repo.findFirst({
       where: { name: 'test-repo' },
     });
 
-    const cred = await Cred.sshKeyMemoryNew(
-      'GIT_CMS',
+    const cred = Git.Credential.sshKeyMemoryNew(
+      'git',
       keys.public_key,
       keys.private_key,
-      '',
+      'secret password',
     );
 
-    const directoryName = 'tmp';
-    const fileName = 'newfile.txt';
-    const fileContent = 'hello world';
+    const directoryName = '';
+    const fileName = 'testfile.txt';
+    const fileContent = 'this is just a demo!';
 
     try {
-      const repo = await Repository.open(path.resolve('tmp', '../.git'));
+      const repo = await Git.Repository.open('./tmp');
       await fs.promises.writeFile(
         path.join(repo.workdir(), fileName),
         fileContent,
@@ -82,15 +128,21 @@ export class ReposService {
       // this file is in the root of the directory and doesn't need a full path
       await index.addByPath(fileName);
       // this file is in a subdirectory and can use a relative path
-      await index.addByPath(path.posix.join(directoryName, fileName));
       // this will write both files to the index
       await index.write();
 
       const oid = await index.writeTree();
 
       const parent = await repo.getHeadCommit();
-      const author = Git.Signature.now('Scott Chacon', 'schacon@gmail.com');
-      const committer = Git.Signature.now('Scott A Chacon', 'scott@github.com');
+      const author = Git.Signature.now(
+        'James Wright',
+        'jameswrightdev@gmail.com',
+      );
+      const committer = Git.Signature.now(
+        'GIT CMS',
+        'gitcms@jameswrightdev.com',
+      );
+
       const commitId = await repo.createCommit(
         'HEAD',
         author,
@@ -102,7 +154,7 @@ export class ReposService {
 
       const remote = await repo.getRemote('origin');
 
-      await remote.push(['refs/head/master:refs/heads/master'], {
+      await remote.push(['refs/heads/main:refs/heads/main'], {
         callbacks: {
           credentials: (url, user) => cred,
         },

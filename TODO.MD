@@ -1,5 +1,7 @@
 GITHUB Flow
 
-[] - Users Authenticates via OAuth2
-[] - Add public SSH key - SSH URL & SSH Public Key
-[] - Use SSH Key to Authenticate Requests?
+[x] - Users Authenticates via OAuth2
+[x] - Add public SSH key - SSH URL & SSH Public Key
+[X] - Dynamically add SSH Key files
+[X] - Clone the Repo
+[X] - Commit and Push a Change

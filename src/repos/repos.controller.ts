@@ -30,6 +30,11 @@ export class ReposController {
     return this.reposService.createKey();
   }
 
+  @Get('clone')
+  clone() {
+    return this.reposService.clone('1');
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.reposService.findOne(id);
