@@ -7,6 +7,13 @@ model User {
   username    String
 }
 
+model Repo {
+  id          Int    @id @default(autoincrement())
+  private_key String
+  public_key  String
+  name        String
+}
+
 datasource db {
   provider = "sqlite"
   url      = env("DATABASE_URL")
