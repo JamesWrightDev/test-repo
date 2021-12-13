@@ -25,6 +25,11 @@ export class ReposController {
     return this.reposService.findAll();
   }
 
+  @Get('ssh')
+  createSSH() {
+    return this.reposService.createKey();
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.reposService.findOne(id);

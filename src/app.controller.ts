@@ -1,6 +1,6 @@
 import { Controller, Get, Req, UseGuards } from '@nestjs/common';
 import { AppService } from './app.service';
-import { GithubStrategy } from './auth/github.strategy';
+import { JwtAuthGuard } from './auth/jwt-auth.guard';
 import { AuthGuard } from '@nestjs/passport';
 import { AuthService } from './auth/auth.service';
 
@@ -21,5 +21,11 @@ export class AppController {
   @UseGuards(AuthGuard('github2'))
   githubAuth(@Req() req) {
     return this.authService.githubLogin(req);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('profile')
+  getProfile(@Req() req) {
+    return req.user;
   }
 }
