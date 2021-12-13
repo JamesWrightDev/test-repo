@@ -5,10 +5,8 @@ import { CreateRepoDto } from './dto/create-repo.dto';
 import { UpdateRepoDto } from './dto/update-repo.dto';
 import * as path from 'path';
 import * as fs from 'fs';
-import { Repository, Cred, Clone } from 'nodegit';
+import { Repository, Credential, Clone, Signature } from 'nodegit';
 import { PrismaClient } from '.prisma/client';
-
-var Git = require('nodegit');
 
 @Injectable()
 export class ReposService {
@@ -46,23 +44,12 @@ export class ReposService {
     ).data;
   }
 
-  getCharCodes(s: string) {
-    let charCodeArr = [];
-
-    for (let i = 0; i < s.length; i++) {
-      let code = s.charCodeAt(i);
-      charCodeArr.push(code);
-    }
-
-    return charCodeArr;
-  }
-
   async clone(name: string) {
     const keys = await this.prisma.repo.findFirst({
       where: { name: 'test-repo' },
     });
     try {
-      const cred = Git.Credential.sshKeyMemoryNew(
+      const cred = Credential.sshKeyMemoryNew(
         'git',
         keys.public_key,
         keys.private_key,
@@ -82,7 +69,7 @@ export class ReposService {
         },
       };
 
-      const repo = await Git.Clone.clone(
+      const repo = await Clone.clone(
         'git@github.com:JamesWrightDev/test-repo.git',
         `./tmp`,
         cloneOpts,
@@ -101,7 +88,7 @@ export class ReposService {
       where: { name: 'test-repo' },
     });
 
-    const cred = Git.Credential.sshKeyMemoryNew(
+    const cred = Credential.sshKeyMemoryNew(
       'git',
       keys.public_key,
       keys.private_key,
@@ -113,7 +100,7 @@ export class ReposService {
     const fileContent = 'this is just a demo!';
 
     try {
-      const repo = await Git.Repository.open('./tmp');
+      const repo = await Repository.open('./tmp');
       await fs.promises.writeFile(
         path.join(repo.workdir(), fileName),
         fileContent,
@@ -134,14 +121,8 @@ export class ReposService {
       const oid = await index.writeTree();
 
       const parent = await repo.getHeadCommit();
-      const author = Git.Signature.now(
-        'James Wright',
-        'jameswrightdev@gmail.com',
-      );
-      const committer = Git.Signature.now(
-        'GIT CMS',
-        'gitcms@jameswrightdev.com',
-      );
+      const author = Signature.now('James Wright', 'jameswrightdev@gmail.com');
+      const committer = Signature.now('GIT CMS', 'gitcms@jameswrightdev.com');
 
       const commitId = await repo.createCommit(
         'HEAD',
